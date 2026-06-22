@@ -10,7 +10,11 @@ const options: swaggerJsdoc.OAS3Options = {
       description: "REST API documentation for the Food Pickup Ordering Platform.",
     },
     servers: [{ url: "/api/v1", description: "API version 1" }],
-    tags: [{ name: "Restaurants", description: "Restaurant discovery and management" }],
+    tags: [
+      { name: "Restaurants", description: "Restaurant discovery and management" },
+      { name: "Categories", description: "Restaurant category management" },
+      { name: "Menu", description: "Restaurant menu item management" },
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -90,6 +94,137 @@ const options: swaggerJsdoc.OAS3Options = {
                 },
               },
             },
+          },
+        },
+        CategoryInput: {
+          type: "object",
+          required: ["restaurantId", "name"],
+          properties: {
+            restaurantId: { type: "string", format: "uuid" },
+            name: { type: "string", minLength: 2, maxLength: 100, example: "Biryani" },
+            description: { type: "string", nullable: true, maxLength: 1000 },
+          },
+        },
+        CategoryUpdateInput: {
+          type: "object",
+          minProperties: 1,
+          properties: {
+            restaurantId: { type: "string", format: "uuid" },
+            name: { type: "string", minLength: 2, maxLength: 100, example: "Starters" },
+            description: { type: "string", nullable: true, maxLength: 1000 },
+          },
+        },
+        Category: {
+          allOf: [
+            { $ref: "#/components/schemas/CategoryInput" },
+            {
+              type: "object",
+              required: ["id", "isActive", "createdAt", "updatedAt"],
+              properties: {
+                id: { type: "string", format: "uuid" },
+                isActive: { type: "boolean", example: true },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+              },
+            },
+          ],
+        },
+        CategoryResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Category created successfully" },
+            data: { $ref: "#/components/schemas/Category" },
+          },
+        },
+        CategoryListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/Category" } },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        MenuItemInput: {
+          type: "object",
+          required: ["restaurantId", "categoryId", "name", "price", "preparationTime"],
+          properties: {
+            restaurantId: { type: "string", format: "uuid" },
+            categoryId: { type: "string", format: "uuid" },
+            name: { type: "string", minLength: 2, maxLength: 150, example: "Chicken Biryani" },
+            description: { type: "string", nullable: true, maxLength: 2000 },
+            price: { type: "number", minimum: 0, example: 249 },
+            imageUrl: { type: "string", format: "uri", nullable: true },
+            isAvailable: { type: "boolean", example: true },
+            preparationTime: { type: "integer", minimum: 1, maximum: 240, example: 25 },
+          },
+        },
+        MenuItemUpdateInput: {
+          type: "object",
+          minProperties: 1,
+          properties: {
+            restaurantId: { type: "string", format: "uuid" },
+            categoryId: { type: "string", format: "uuid" },
+            name: { type: "string", minLength: 2, maxLength: 150 },
+            description: { type: "string", nullable: true, maxLength: 2000 },
+            price: { type: "number", minimum: 0 },
+            imageUrl: { type: "string", format: "uri", nullable: true },
+            isAvailable: { type: "boolean" },
+            preparationTime: { type: "integer", minimum: 1, maximum: 240 },
+          },
+        },
+        MenuItem: {
+          allOf: [
+            { $ref: "#/components/schemas/MenuItemInput" },
+            {
+              type: "object",
+              required: ["id", "isActive", "createdAt", "updatedAt"],
+              properties: {
+                id: { type: "string", format: "uuid" },
+                isActive: { type: "boolean", example: true },
+                createdAt: { type: "string", format: "date-time" },
+                updatedAt: { type: "string", format: "date-time" },
+              },
+            },
+          ],
+        },
+        MenuItemResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Menu item created successfully" },
+            data: { $ref: "#/components/schemas/MenuItem" },
+          },
+        },
+        MenuItemListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/MenuItem" } },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        Pagination: {
+          type: "object",
+          properties: {
+            page: { type: "integer", example: 1 },
+            limit: { type: "integer", example: 20 },
+            totalItems: { type: "integer", example: 42 },
+            totalPages: { type: "integer", example: 3 },
+            hasNextPage: { type: "boolean", example: true },
+            hasPreviousPage: { type: "boolean", example: false },
           },
         },
       },

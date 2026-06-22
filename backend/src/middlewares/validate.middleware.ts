@@ -3,9 +3,9 @@ import type { z } from "zod";
 import { AppError } from "../utils/app-error.js";
 
 export interface RequestInput {
-  body: unknown;
-  params: unknown;
-  query: unknown;
+  body?: unknown;
+  params?: unknown;
+  query?: unknown;
 }
 
 export const validateRequest = (schema: z.ZodType<RequestInput>): RequestHandler =>

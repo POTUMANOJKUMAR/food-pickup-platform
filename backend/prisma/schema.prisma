@@ -9,7 +9,7 @@ datasource db {
 
 enum Role {
   USER
-  RESTAURANT
+  RESTAURANT_OWNER
   ADMIN
 }
 
@@ -23,8 +23,36 @@ model User {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   refreshTokens RefreshToken[]
+  restaurants   Restaurant[]   @relation("RestaurantOwner")
+  approvals     Restaurant[]   @relation("RestaurantApprover")
 
   @@map("users")
+}
+
+model Restaurant {
+  id           String    @id @default(uuid()) @db.Uuid
+  ownerId      String    @map("owner_id") @db.Uuid
+  name         String    @db.VarChar(150)
+  description  String?   @db.Text
+  address      String    @db.Text
+  latitude     Decimal   @db.Decimal(9, 6)
+  longitude    Decimal   @db.Decimal(9, 6)
+  phone        String    @db.VarChar(20)
+  openingTime  DateTime  @map("opening_time") @db.Time(0)
+  closingTime  DateTime  @map("closing_time") @db.Time(0)
+  isActive     Boolean   @default(true) @map("is_active")
+  isApproved   Boolean   @default(false) @map("is_approved")
+  approvedAt   DateTime? @map("approved_at")
+  approvedById String?   @map("approved_by_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  owner        User      @relation("RestaurantOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  approvedBy   User?     @relation("RestaurantApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([ownerId])
+  @@index([name])
+  @@index([isActive, isApproved])
+  @@map("restaurants")
 }
 
 model RefreshToken {

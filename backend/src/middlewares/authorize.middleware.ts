@@ -10,6 +10,7 @@ export const authorize = (...allowedRoles: readonly Role[]): RequestHandler =>
     }
 
     if (!allowedRoles.includes(request.user.role)) {
+      console.log(`User with role ${request.user.role} is not authorized to access this resource`);
       next(new AppError("You are not authorized to access this resource", 403));
       return;
     }

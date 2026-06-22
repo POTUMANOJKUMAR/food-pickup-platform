@@ -14,6 +14,9 @@ const options: swaggerJsdoc.OAS3Options = {
       { name: "Restaurants", description: "Restaurant discovery and management" },
       { name: "Categories", description: "Restaurant category management" },
       { name: "Menu", description: "Restaurant menu item management" },
+      { name: "Cart", description: "Customer cart management" },
+      { name: "Orders", description: "Order lifecycle management" },
+      { name: "Payments", description: "Razorpay payment management" },
     ],
     components: {
       securitySchemes: {
@@ -211,6 +214,208 @@ const options: swaggerJsdoc.OAS3Options = {
               type: "object",
               properties: {
                 items: { type: "array", items: { $ref: "#/components/schemas/MenuItem" } },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        AddCartItemInput: {
+          type: "object",
+          required: ["menuItemId", "quantity"],
+          properties: {
+            menuItemId: { type: "string", format: "uuid" },
+            quantity: { type: "integer", minimum: 1, maximum: 99, example: 2 },
+          },
+        },
+        UpdateCartItemInput: {
+          type: "object",
+          required: ["quantity"],
+          properties: {
+            quantity: { type: "integer", minimum: 1, maximum: 99, example: 3 },
+          },
+        },
+        CartItem: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            menuItemId: { type: "string", format: "uuid" },
+            quantity: { type: "integer", example: 2 },
+            unitPrice: { type: "number", example: 249 },
+            subtotal: { type: "number", example: 498 },
+            menuItem: {
+              type: "object",
+              properties: {
+                id: { type: "string", format: "uuid" },
+                name: { type: "string", example: "Chicken Biryani" },
+                imageUrl: { type: "string", nullable: true },
+                isAvailable: { type: "boolean", example: true },
+              },
+            },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        Cart: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            userId: { type: "string", format: "uuid" },
+            restaurantId: { type: "string", format: "uuid", nullable: true },
+            subtotal: { type: "number", example: 498 },
+            totalAmount: { type: "number", example: 498 },
+            isActive: { type: "boolean", example: true },
+            items: { type: "array", items: { $ref: "#/components/schemas/CartItem" } },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        CartResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: { $ref: "#/components/schemas/Cart" },
+          },
+        },
+        UpdateOrderStatusInput: {
+          type: "object",
+          required: ["status"],
+          properties: {
+            status: {
+              type: "string",
+              enum: ["PENDING", "CONFIRMED", "PREPARING", "READY_FOR_PICKUP", "COMPLETED"],
+              example: "CONFIRMED",
+            },
+          },
+        },
+        OrderItem: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            menuItemId: { type: "string", format: "uuid" },
+            name: { type: "string", example: "Chicken Biryani" },
+            quantity: { type: "integer", example: 2 },
+            unitPrice: { type: "number", example: 249 },
+            subtotal: { type: "number", example: 498 },
+            createdAt: { type: "string", format: "date-time" },
+          },
+        },
+        Order: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            orderNumber: { type: "string", example: "FP1234" },
+            userId: { type: "string", format: "uuid" },
+            restaurantId: { type: "string", format: "uuid" },
+            status: {
+              type: "string",
+              enum: ["PENDING", "CONFIRMED", "PREPARING", "READY_FOR_PICKUP", "COMPLETED", "CANCELLED"],
+            },
+            paymentStatus: { type: "string", enum: ["PENDING", "SUCCESS", "FAILED", "REFUNDED"] },
+            pickupCode: { type: "string", example: "482913" },
+            subtotal: { type: "number", example: 498 },
+            taxAmount: { type: "number", example: 24.9 },
+            totalAmount: { type: "number", example: 522.9 },
+            cancelledAt: { type: "string", format: "date-time", nullable: true },
+            paidAt: { type: "string", format: "date-time", nullable: true },
+            items: { type: "array", items: { $ref: "#/components/schemas/OrderItem" } },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        OrderResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Order created successfully" },
+            data: { $ref: "#/components/schemas/Order" },
+          },
+        },
+        OrderListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/Order" } },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        CreatePaymentOrderInput: {
+          type: "object",
+          required: ["orderId"],
+          properties: {
+            orderId: { type: "string", format: "uuid" },
+          },
+        },
+        VerifyPaymentInput: {
+          type: "object",
+          required: ["razorpayOrderId", "razorpayPaymentId", "razorpaySignature"],
+          properties: {
+            razorpayOrderId: { type: "string", example: "order_Nabc123" },
+            razorpayPaymentId: { type: "string", example: "pay_Nabc123" },
+            razorpaySignature: { type: "string", example: "generated_hmac_signature" },
+          },
+        },
+        Payment: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            orderId: { type: "string", format: "uuid" },
+            userId: { type: "string", format: "uuid" },
+            amount: { type: "number", example: 522.9 },
+            status: { type: "string", enum: ["PENDING", "SUCCESS", "FAILED", "REFUNDED"] },
+            razorpayOrderId: { type: "string", nullable: true },
+            razorpayPaymentId: { type: "string", nullable: true },
+            transactionReference: { type: "string", nullable: true },
+            failureReason: { type: "string", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        PaymentResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Payment verified successfully" },
+            data: { $ref: "#/components/schemas/Payment" },
+          },
+        },
+        RazorpayOrderResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Razorpay order created successfully" },
+            data: {
+              type: "object",
+              properties: {
+                payment: { $ref: "#/components/schemas/Payment" },
+                razorpayOrder: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string", example: "order_Nabc123" },
+                    amount: { type: "integer", example: 52290 },
+                    currency: { type: "string", example: "INR" },
+                    receipt: { type: "string", nullable: true, example: "FP1234" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        PaymentListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/Payment" } },
                 pagination: { $ref: "#/components/schemas/Pagination" },
               },
             },

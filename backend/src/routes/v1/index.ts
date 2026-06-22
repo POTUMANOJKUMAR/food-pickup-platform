@@ -1,17 +1,23 @@
 import { Router } from "express";
 import { authRouter } from "../../modules/auth/routes.js";
+import { cartRouter } from "../../modules/cart/routes.js";
 import { categoryMenuRouter, menuRouter, restaurantMenuRouter } from "../../modules/menu/routes.js";
 import { categoryRouter, restaurantCategoryRouter } from "../../modules/category/routes.js";
+import { orderRouter } from "../../modules/order/routes.js";
+import { paymentRouter } from "../../modules/payment/routes.js";
 import { restaurantRouter } from "../../modules/restaurant/routes.js";
 import { healthRouter } from "./health.routes.js";
 
 export const v1Router = Router();
 
 v1Router.use("/auth", authRouter);
+v1Router.use("/cart", cartRouter);
 v1Router.use("/restaurants", restaurantRouter);
 v1Router.use("/restaurants/:restaurantId/categories", restaurantCategoryRouter);
 v1Router.use("/restaurants/:restaurantId/menu", restaurantMenuRouter);
 v1Router.use("/categories", categoryRouter);
 v1Router.use("/categories/:categoryId/menu", categoryMenuRouter);
 v1Router.use("/menu-items", menuRouter);
+v1Router.use("/orders", orderRouter);
+v1Router.use("/payments", paymentRouter);
 v1Router.use("/health", healthRouter);

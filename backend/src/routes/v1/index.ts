@@ -5,6 +5,7 @@ import { categoryMenuRouter, menuRouter, restaurantMenuRouter } from "../../modu
 import { categoryRouter, restaurantCategoryRouter } from "../../modules/category/routes.js";
 import { orderRouter } from "../../modules/order/routes.js";
 import { paymentRouter } from "../../modules/payment/routes.js";
+import { notificationRouter } from "../../modules/notification/routes.js";
 import { restaurantRouter } from "../../modules/restaurant/routes.js";
 import { healthRouter } from "./health.routes.js";
 
@@ -20,4 +21,5 @@ v1Router.use("/categories/:categoryId/menu", categoryMenuRouter);
 v1Router.use("/menu-items", menuRouter);
 v1Router.use("/orders", orderRouter);
 v1Router.use("/payments", paymentRouter);
+v1Router.use("/notifications", notificationRouter);
 v1Router.use("/health", healthRouter);

@@ -29,6 +29,19 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum NotificationType {
+  ORDER_CREATED
+  ORDER_CONFIRMED
+  ORDER_PREPARING
+  ORDER_READY_FOR_PICKUP
+  ORDER_COMPLETED
+  ORDER_CANCELLED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  RESTAURANT_APPROVED
+  SYSTEM_NOTIFICATION
+}
+
 model User {
   id            String         @id @default(uuid()) @db.Uuid
   name          String         @db.VarChar(100)
@@ -44,6 +57,7 @@ model User {
   carts         Cart[]
   orders        Order[]
   payments      Payment[]
+  notifications Notification[]
 
   @@map("users")
 }
@@ -221,6 +235,24 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@map("payments")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  title     String           @db.VarChar(150)
+  message   String           @db.Text
+  type      NotificationType
+  isRead    Boolean          @default(false) @map("is_read")
+  metadata  Json?
+  createdAt DateTime         @default(now()) @map("created_at")
+  updatedAt DateTime         @updatedAt @map("updated_at")
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+  @@index([type])
+  @@map("notifications")
 }
 
 model RefreshToken {

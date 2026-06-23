@@ -17,6 +17,7 @@ const options: swaggerJsdoc.OAS3Options = {
       { name: "Cart", description: "Customer cart management" },
       { name: "Orders", description: "Order lifecycle management" },
       { name: "Payments", description: "Razorpay payment management" },
+      { name: "Notifications", description: "Notification history and push delivery" },
     ],
     components: {
       securitySchemes: {
@@ -416,6 +417,81 @@ const options: swaggerJsdoc.OAS3Options = {
               type: "object",
               properties: {
                 items: { type: "array", items: { $ref: "#/components/schemas/Payment" } },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        NotificationType: {
+          type: "string",
+          enum: [
+            "ORDER_CREATED",
+            "ORDER_CONFIRMED",
+            "ORDER_PREPARING",
+            "ORDER_READY_FOR_PICKUP",
+            "ORDER_COMPLETED",
+            "ORDER_CANCELLED",
+            "PAYMENT_SUCCESS",
+            "PAYMENT_FAILED",
+            "RESTAURANT_APPROVED",
+            "SYSTEM_NOTIFICATION",
+          ],
+        },
+        CreateNotificationInput: {
+          type: "object",
+          required: ["userId", "title", "message", "type"],
+          properties: {
+            userId: { type: "string", format: "uuid" },
+            title: { type: "string", minLength: 1, maxLength: 150, example: "Order confirmed" },
+            message: {
+              type: "string",
+              minLength: 1,
+              maxLength: 2000,
+              example: "Your order FP1234 has been confirmed.",
+            },
+            type: { $ref: "#/components/schemas/NotificationType" },
+            metadata: {
+              type: "object",
+              nullable: true,
+              additionalProperties: true,
+              example: { orderId: "3d4e8f11-3333-4444-8888-123456789000" },
+            },
+            pushToken: { type: "string", nullable: true, description: "Optional FCM device token" },
+            sendPush: { type: "boolean", default: false },
+          },
+        },
+        Notification: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            userId: { type: "string", format: "uuid" },
+            title: { type: "string", example: "Order confirmed" },
+            message: { type: "string", example: "Your order FP1234 has been confirmed." },
+            type: { $ref: "#/components/schemas/NotificationType" },
+            isRead: { type: "boolean", example: false },
+            metadata: { type: "object", nullable: true, additionalProperties: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        NotificationResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Notification created successfully" },
+            data: { $ref: "#/components/schemas/Notification" },
+          },
+        },
+        NotificationListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/Notification" } },
+                unreadCount: { type: "integer", example: 5 },
                 pagination: { $ref: "#/components/schemas/Pagination" },
               },
             },

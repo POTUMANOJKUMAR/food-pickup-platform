@@ -18,6 +18,9 @@ const options: swaggerJsdoc.OAS3Options = {
       { name: "Orders", description: "Order lifecycle management" },
       { name: "Payments", description: "Razorpay payment management" },
       { name: "Notifications", description: "Notification history and push delivery" },
+      { name: "Reviews", description: "Restaurant review and rating management" },
+      { name: "Wallet", description: "Restaurant wallet balances and transactions" },
+      { name: "Settlements", description: "Restaurant payout settlement workflow" },
     ],
     components: {
       securitySchemes: {
@@ -493,6 +496,207 @@ const options: swaggerJsdoc.OAS3Options = {
               properties: {
                 items: { type: "array", items: { $ref: "#/components/schemas/Notification" } },
                 unreadCount: { type: "integer", example: 5 },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        CreateReviewInput: {
+          type: "object",
+          required: ["orderId", "rating"],
+          properties: {
+            orderId: { type: "string", format: "uuid" },
+            rating: { type: "integer", minimum: 1, maximum: 5, example: 5 },
+            comment: { type: "string", nullable: true, maxLength: 2000 },
+          },
+        },
+        UpdateReviewInput: {
+          type: "object",
+          minProperties: 1,
+          properties: {
+            rating: { type: "integer", minimum: 1, maximum: 5, example: 4 },
+            comment: { type: "string", nullable: true, maxLength: 2000 },
+          },
+        },
+        Review: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            userId: { type: "string", format: "uuid" },
+            restaurantId: { type: "string", format: "uuid" },
+            orderId: { type: "string", format: "uuid" },
+            rating: { type: "integer", minimum: 1, maximum: 5, example: 5 },
+            comment: { type: "string", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        ReviewResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: { $ref: "#/components/schemas/Review" },
+          },
+        },
+        ReviewListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/Review" } },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        RatingSummaryResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                averageRating: { type: "number", example: 4.6 },
+                totalReviews: { type: "integer", example: 190 },
+                ratingBreakdown: {
+                  type: "object",
+                  properties: {
+                    5: { type: "integer", example: 120 },
+                    4: { type: "integer", example: 50 },
+                    3: { type: "integer", example: 20 },
+                    2: { type: "integer", example: 0 },
+                    1: { type: "integer", example: 0 },
+                  },
+                },
+              },
+            },
+          },
+        },
+        Wallet: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            restaurantId: { type: "string", format: "uuid" },
+            availableBalance: { type: "number", example: 475 },
+            pendingBalance: { type: "number", example: 0 },
+            lifetimeEarnings: { type: "number", example: 4750 },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        WalletResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: { $ref: "#/components/schemas/Wallet" },
+          },
+        },
+        WalletTransaction: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            walletId: { type: "string", format: "uuid" },
+            orderId: { type: "string", format: "uuid", nullable: true },
+            amount: { type: "number", example: 475 },
+            transactionType: { type: "string", enum: ["CREDIT", "DEBIT", "SETTLEMENT", "COMMISSION"] },
+            description: { type: "string", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+          },
+        },
+        WalletTransactionListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/WalletTransaction" } },
+                pagination: { $ref: "#/components/schemas/Pagination" },
+              },
+            },
+          },
+        },
+        WalletSummaryResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                wallet: { $ref: "#/components/schemas/Wallet" },
+                totalCredits: { type: "number", example: 4750 },
+                totalDebits: { type: "number", example: 1000 },
+                totalSettlements: { type: "number", example: 1000 },
+                totalCommissions: { type: "number", example: 250 },
+                transactionCount: { type: "integer", example: 18 },
+              },
+            },
+          },
+        },
+        RequestSettlementInput: {
+          type: "object",
+          required: ["amount"],
+          properties: {
+            restaurantId: { type: "string", format: "uuid", description: "Optional when owner has one restaurant." },
+            amount: { type: "number", minimum: 0, example: 475 },
+            remarks: { type: "string", nullable: true, maxLength: 2000 },
+          },
+        },
+        RejectSettlementInput: {
+          type: "object",
+          properties: {
+            remarks: { type: "string", nullable: true, maxLength: 2000 },
+          },
+        },
+        MarkSettlementPaidInput: {
+          type: "object",
+          required: ["referenceNumber"],
+          properties: {
+            referenceNumber: { type: "string", maxLength: 100, example: "UTR123456789" },
+            remarks: { type: "string", nullable: true, maxLength: 2000 },
+          },
+        },
+        Settlement: {
+          type: "object",
+          properties: {
+            id: { type: "string", format: "uuid" },
+            restaurantId: { type: "string", format: "uuid" },
+            walletId: { type: "string", format: "uuid" },
+            amount: { type: "number", example: 475 },
+            status: { type: "string", enum: ["PENDING", "APPROVED", "PROCESSING", "PAID", "REJECTED"] },
+            referenceNumber: { type: "string", nullable: true },
+            remarks: { type: "string", nullable: true },
+            requestedAt: { type: "string", format: "date-time" },
+            processedAt: { type: "string", format: "date-time", nullable: true },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
+        SettlementResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: { $ref: "#/components/schemas/Settlement" },
+          },
+        },
+        SettlementListResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Success" },
+            data: {
+              type: "object",
+              properties: {
+                items: { type: "array", items: { $ref: "#/components/schemas/Settlement" } },
                 pagination: { $ref: "#/components/schemas/Pagination" },
               },
             },

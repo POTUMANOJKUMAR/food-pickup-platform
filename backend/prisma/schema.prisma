@@ -43,6 +43,21 @@ enum NotificationType {
   SYSTEM_NOTIFICATION
 }
 
+enum WalletTransactionType {
+  CREDIT
+  DEBIT
+  SETTLEMENT
+  COMMISSION
+}
+
+enum SettlementStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  PAID
+  REJECTED
+}
+
 model User {
   id            String         @id @default(uuid()) @db.Uuid
   name          String         @db.VarChar(100)
@@ -59,6 +74,7 @@ model User {
   orders        Order[]
   payments      Payment[]
   notifications Notification[]
+  reviews       Review[]
 
   @@map("users")
 }
@@ -86,6 +102,9 @@ model Restaurant {
   menuItems    MenuItem[]
   carts        Cart[]
   orders       Order[]
+  reviews      Review[]
+  wallet       RestaurantWallet?
+  settlements  Settlement[]
 
   @@index([ownerId])
   @@index([name])
@@ -191,12 +210,88 @@ model Order {
   restaurant    Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
   items         OrderItem[]
   payments      Payment[]
+  review        Review?
+  walletTransactions WalletTransaction[]
 
   @@index([userId])
   @@index([restaurantId])
   @@index([status])
   @@index([paymentStatus])
   @@map("orders")
+}
+
+model Review {
+  id           String     @id @default(uuid()) @db.Uuid
+  userId       String     @map("user_id") @db.Uuid
+  restaurantId String     @map("restaurant_id") @db.Uuid
+  orderId      String     @unique @map("order_id") @db.Uuid
+  rating       Int
+  comment      String?    @db.Text
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  user         User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  order        Order      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([restaurantId])
+  @@index([rating])
+  @@map("reviews")
+}
+
+model RestaurantWallet {
+  id               String              @id @default(uuid()) @db.Uuid
+  restaurantId     String              @unique @map("restaurant_id") @db.Uuid
+  availableBalance Decimal             @default(0) @map("available_balance") @db.Decimal(10, 2)
+  pendingBalance   Decimal             @default(0) @map("pending_balance") @db.Decimal(10, 2)
+  lifetimeEarnings Decimal             @default(0) @map("lifetime_earnings") @db.Decimal(10, 2)
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+  restaurant       Restaurant          @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  transactions     WalletTransaction[]
+  settlements      Settlement[]
+
+  @@index([restaurantId])
+  @@map("restaurant_wallets")
+}
+
+model WalletTransaction {
+  id              String                @id @default(uuid()) @db.Uuid
+  walletId        String                @map("wallet_id") @db.Uuid
+  orderId         String?               @map("order_id") @db.Uuid
+  amount          Decimal               @db.Decimal(10, 2)
+  transactionType WalletTransactionType @map("transaction_type")
+  description     String?               @db.Text
+  createdAt       DateTime              @default(now()) @map("created_at")
+  wallet          RestaurantWallet      @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  order           Order?                @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([walletId, createdAt])
+  @@index([orderId])
+  @@index([transactionType])
+  @@map("wallet_transactions")
+}
+
+model Settlement {
+  id              String            @id @default(uuid()) @db.Uuid
+  restaurantId    String            @map("restaurant_id") @db.Uuid
+  walletId        String            @map("wallet_id") @db.Uuid
+  amount          Decimal           @db.Decimal(10, 2)
+  status          SettlementStatus  @default(PENDING)
+  referenceNumber String?           @unique @map("reference_number") @db.VarChar(100)
+  remarks         String?           @db.Text
+  requestedAt     DateTime          @default(now()) @map("requested_at")
+  processedAt     DateTime?         @map("processed_at")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  restaurant      Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Restrict)
+  wallet          RestaurantWallet  @relation(fields: [walletId], references: [id], onDelete: Restrict)
+
+  @@index([restaurantId])
+  @@index([walletId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("settlements")
 }
 
 model OrderItem {

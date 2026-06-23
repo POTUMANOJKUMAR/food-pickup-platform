@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { Role } from "../../constants/roles.js";
 import { AppError } from "../../utils/app-error.js";
 import { notificationEventService } from "../notification/event-service.js";
+import { walletService } from "../wallet/service.js";
 import { orderRepository, type OrderRecord, type OrderRepository } from "./repository.js";
 import type {
   ListOrdersQueryDTO,
@@ -139,6 +140,9 @@ export class OrderService {
     }
 
     const updated = await this.repository.updateStatus(id, input.status);
+    if (updated.status === "COMPLETED") {
+      await walletService.releasePendingForCompletedOrder(updated.id);
+    }
     await notificationEventService.orderStatusUpdated(updated);
     return toOrderResponse(updated);
   }

@@ -5,6 +5,7 @@ import { Role } from "../../constants/roles.js";
 import { AppError } from "../../utils/app-error.js";
 import { notificationEventService } from "../notification/event-service.js";
 import { orderRepository } from "../order/repository.js";
+import { walletService } from "../wallet/service.js";
 import { paymentRepository, type PaymentRecord, type PaymentRepository } from "./repository.js";
 import type {
   CreatePaymentOrderRequestDTO,
@@ -124,6 +125,7 @@ export class PaymentService {
       responsePayload: input as unknown as Prisma.InputJsonValue,
     });
     const paidOrder = await orderRepository.markPaymentStatus(payment.orderId, "SUCCESS", new Date());
+    await walletService.creditPendingForPaidOrder(paidOrder.id);
     await notificationEventService.paymentSuccess(updated);
     await notificationEventService.newPaidOrder(paidOrder);
 

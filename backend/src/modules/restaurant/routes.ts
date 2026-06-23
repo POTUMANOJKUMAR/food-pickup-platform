@@ -138,7 +138,7 @@ restaurantRouter.delete(
  *   put:
  *     tags: [Restaurants]
  *     summary: Approve a restaurant
- *     description: Requires the ADMIN role.
+ *     description: Requires the ADMIN role and triggers RESTAURANT_APPROVED for the restaurant owner.
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { Role } from "../../constants/roles.js";
 import { AppError } from "../../utils/app-error.js";
+import { notificationEventService } from "../notification/event-service.js";
 import { orderRepository, type OrderRecord, type OrderRepository } from "./repository.js";
 import type {
   ListOrdersQueryDTO,
@@ -79,6 +80,7 @@ export class OrderService {
           taxAmount,
           totalAmount,
         });
+        await notificationEventService.orderCreated(order);
         return toOrderResponse(order);
       } catch (error) {
         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -137,6 +139,7 @@ export class OrderService {
     }
 
     const updated = await this.repository.updateStatus(id, input.status);
+    await notificationEventService.orderStatusUpdated(updated);
     return toOrderResponse(updated);
   }
 
@@ -152,6 +155,7 @@ export class OrderService {
     }
 
     const updated = await this.repository.updateStatus(id, "CANCELLED");
+    await notificationEventService.orderCancelled(updated);
     return toOrderResponse(updated);
   }
 

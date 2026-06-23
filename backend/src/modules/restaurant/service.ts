@@ -1,5 +1,6 @@
 import { Role } from "../../constants/roles.js";
 import { AppError } from "../../utils/app-error.js";
+import { notificationEventService } from "../notification/event-service.js";
 import { restaurantRepository, type RestaurantRecord, type RestaurantRepository } from "./repository.js";
 import type {
   CreateRestaurantRequestDTO,
@@ -116,6 +117,7 @@ export class RestaurantService {
   public async approve(id: string, adminId: string): Promise<RestaurantResponseDTO> {
     await this.getActiveForMutation(id);
     const restaurant = await this.repository.approve(id, adminId);
+    await notificationEventService.restaurantApproved(restaurant);
     return toRestaurantResponse(restaurant);
   }
 

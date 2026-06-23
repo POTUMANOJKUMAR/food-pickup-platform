@@ -42,6 +42,7 @@ paymentRouter.post(
  *   post:
  *     tags: [Payments]
  *     summary: Verify Razorpay payment
+ *     description: On successful verification, triggers PAYMENT_SUCCESS for the customer and NEW_ORDER_RECEIVED for the restaurant owner. On signature verification failure, triggers PAYMENT_FAILED for the customer.
  *     security: [{ bearerAuth: [] }]
  *     requestBody:
  *       required: true

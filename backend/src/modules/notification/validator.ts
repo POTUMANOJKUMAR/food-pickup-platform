@@ -10,6 +10,7 @@ const notificationTypeSchema = z.enum([
   "ORDER_CANCELLED",
   "PAYMENT_SUCCESS",
   "PAYMENT_FAILED",
+  "NEW_ORDER_RECEIVED",
   "RESTAURANT_APPROVED",
   "SYSTEM_NOTIFICATION",
 ]);

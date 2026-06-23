@@ -17,6 +17,7 @@ orderRouter.use(authenticate);
  *   post:
  *     tags: [Orders]
  *     summary: Create order from active cart
+ *     description: Creates an order in the pending-payment business state and triggers ORDER_CREATED for the customer. Restaurant owners are not notified until payment succeeds.
  *     security: [{ bearerAuth: [] }]
  *     responses:
  *       201:
@@ -81,6 +82,7 @@ orderRouter.get(
  *   put:
  *     tags: [Orders]
  *     summary: Update order status
+ *     description: Triggers customer notifications for CONFIRMED, PREPARING, READY_FOR_PICKUP, and COMPLETED. READY_FOR_PICKUP notifications include the pickup code.
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
@@ -109,6 +111,7 @@ orderRouter.put(
  *   put:
  *     tags: [Orders]
  *     summary: Cancel order
+ *     description: Triggers ORDER_CANCELLED for the customer.
  *     security: [{ bearerAuth: [] }]
  *     parameters:
  *       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }

@@ -50,12 +50,13 @@ export class NotificationService {
 
     await this.ensureUserExists(input.userId);
 
+    const metadata = toJsonValue(input.metadata);
     const notification = await this.repository.create({
       userId: input.userId,
       title: input.title,
       message: input.message,
       type: input.type,
-      ...(input.metadata === undefined ? {} : { metadata: toJsonValue(input.metadata) }),
+      ...(metadata === undefined ? {} : { metadata }),
     });
 
     if (input.sendPush === true && input.pushToken !== undefined) {
@@ -212,24 +213,24 @@ const notify = (
 export const notifyOrderCreated = (payload: NotificationHelperPayloadDTO): Promise<NotificationResponseDTO> =>
   notify(
     "ORDER_CREATED",
-    "Order created",
-    `Your order${payload.orderNumber === undefined ? "" : ` ${payload.orderNumber}`} has been created.`,
+    "Order Created",
+    "Your order has been created. Complete payment to proceed.",
     payload,
   );
 
 export const notifyOrderConfirmed = (payload: NotificationHelperPayloadDTO): Promise<NotificationResponseDTO> =>
   notify(
     "ORDER_CONFIRMED",
-    "Order confirmed",
-    `Your order${payload.orderNumber === undefined ? "" : ` ${payload.orderNumber}`} has been confirmed.`,
+    "Order Confirmed",
+    "Your order has been confirmed by the restaurant.",
     payload,
   );
 
 export const notifyOrderPreparing = (payload: NotificationHelperPayloadDTO): Promise<NotificationResponseDTO> =>
   notify(
     "ORDER_PREPARING",
-    "Order is being prepared",
-    `Your order${payload.orderNumber === undefined ? "" : ` ${payload.orderNumber}`} is being prepared.`,
+    "Order Preparing",
+    "Your order is currently being prepared.",
     payload,
   );
 
@@ -238,21 +239,46 @@ export const notifyOrderReadyForPickup = (
 ): Promise<NotificationResponseDTO> =>
   notify(
     "ORDER_READY_FOR_PICKUP",
-    "Order ready for pickup",
-    `Your order${payload.orderNumber === undefined ? "" : ` ${payload.orderNumber}`} is ready for pickup.`,
+    "Ready For Pickup",
+    `Your order is ready for pickup.${
+      payload.pickupCode === undefined ? "" : ` Pickup code: ${payload.pickupCode}.`
+    }`,
     payload,
   );
 
 export const notifyOrderCompleted = (payload: NotificationHelperPayloadDTO): Promise<NotificationResponseDTO> =>
   notify(
     "ORDER_COMPLETED",
-    "Order completed",
-    `Your order${payload.orderNumber === undefined ? "" : ` ${payload.orderNumber}`} has been completed.`,
+    "Order Completed",
+    "Thank you for using Food Pickup Platform.",
     payload,
   );
 
+export const notifyOrderCancelled = (payload: NotificationHelperPayloadDTO): Promise<NotificationResponseDTO> =>
+  notify("ORDER_CANCELLED", "Order Cancelled", "Your order has been cancelled.", payload);
+
 export const notifyPaymentSuccess = (payload: NotificationHelperPayloadDTO): Promise<NotificationResponseDTO> =>
-  notify("PAYMENT_SUCCESS", "Payment successful", "Your payment was successful.", payload);
+  notify("PAYMENT_SUCCESS", "Payment Successful", "Your payment was completed successfully.", payload);
 
 export const notifyPaymentFailed = (payload: NotificationHelperPayloadDTO): Promise<NotificationResponseDTO> =>
-  notify("PAYMENT_FAILED", "Payment failed", "Your payment could not be completed.", payload);
+  notify("PAYMENT_FAILED", "Payment Failed", "Your payment could not be completed.", payload);
+
+export const notifyNewOrderReceived = (
+  payload: NotificationHelperPayloadDTO,
+): Promise<NotificationResponseDTO> =>
+  notify(
+    "NEW_ORDER_RECEIVED",
+    "New Order Received",
+    "A new paid order has been received and requires confirmation.",
+    payload,
+  );
+
+export const notifyRestaurantApproved = (
+  payload: NotificationHelperPayloadDTO,
+): Promise<NotificationResponseDTO> =>
+  notify(
+    "RESTAURANT_APPROVED",
+    "Restaurant Approved",
+    "Your restaurant has been approved and is now visible to customers.",
+    payload,
+  );

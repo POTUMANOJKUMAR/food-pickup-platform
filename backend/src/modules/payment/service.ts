@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { env } from "../../config/env.js";
 import { Role } from "../../constants/roles.js";
 import { AppError } from "../../utils/app-error.js";
+import { notificationEventService } from "../notification/event-service.js";
 import { orderRepository } from "../order/repository.js";
 import { paymentRepository, type PaymentRecord, type PaymentRepository } from "./repository.js";
 import type {
@@ -98,22 +99,23 @@ export class PaymentService {
       throw new AppError("You are not authorized to verify this payment", 403);
     }
 
-const signatureValid =
-  process.env.NODE_ENV === "development"
-    ? true
-    : this.verifySignature(input);
+    const signatureValid =
+      process.env.NODE_ENV === "development"
+        ? true
+        : this.verifySignature(input);
 
-if (!signatureValid) {
-  await this.repository.markFailed({
-    id: payment.id,
-    failureReason: "Invalid Razorpay signature",
-    responsePayload: input as unknown as Prisma.InputJsonValue,
-  });
+    if (!signatureValid) {
+      const failedPayment = await this.repository.markFailed({
+        id: payment.id,
+        failureReason: "Invalid Razorpay signature",
+        responsePayload: input as unknown as Prisma.InputJsonValue,
+      });
 
-  await orderRepository.markPaymentStatus(payment.orderId, "FAILED");
+      await orderRepository.markPaymentStatus(payment.orderId, "FAILED");
+      await notificationEventService.paymentFailed(failedPayment);
 
-  throw new AppError("Invalid Razorpay signature", 400);
-}
+      throw new AppError("Invalid Razorpay signature", 400);
+    }
 
     const updated = await this.repository.markSuccess({
       id: payment.id,
@@ -121,7 +123,9 @@ if (!signatureValid) {
       transactionReference: input.razorpayPaymentId,
       responsePayload: input as unknown as Prisma.InputJsonValue,
     });
-    await orderRepository.markPaymentStatus(payment.orderId, "SUCCESS", new Date());
+    const paidOrder = await orderRepository.markPaymentStatus(payment.orderId, "SUCCESS", new Date());
+    await notificationEventService.paymentSuccess(updated);
+    await notificationEventService.newPaidOrder(paidOrder);
 
     return toPaymentResponse(updated);
   }

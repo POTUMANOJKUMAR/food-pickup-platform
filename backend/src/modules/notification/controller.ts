@@ -56,15 +56,14 @@ export class NotificationController {
         : undefined;
     const userId = typeof request.query.userId === "string" ? request.query.userId : undefined;
     const sortOrder = request.query.sortOrder === "asc" ? "asc" : "desc";
+    const isRead = parseIsRead(request.query.isRead);
     const query: ListNotificationsQueryDTO = {
       page: Number(request.query.page ?? 1),
       limit: Number(request.query.limit ?? 20),
       sortOrder,
       ...(type === undefined ? {} : { type }),
       ...(userId === undefined ? {} : { userId }),
-      ...(parseIsRead(request.query.isRead) === undefined
-        ? {}
-        : { isRead: parseIsRead(request.query.isRead) }),
+      ...(isRead === undefined ? {} : { isRead }),
     };
     const result = await this.service.list(getActor(request), query);
     sendSuccess(response, result);

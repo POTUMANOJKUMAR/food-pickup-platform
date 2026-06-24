@@ -10,6 +10,12 @@ import type {
   UpdateReviewRequestDTO,
 } from "./types.js";
 
+type AnalyticsResponse = {
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: Record<string, number>;
+};
+
 const getActor = (request: Request) => {
   if (request.user === undefined) {
     throw new AppError("Authentication required", 401);
@@ -104,6 +110,27 @@ export class ReviewController {
 
     const result = await this.service.ratingSummary(restaurantId);
     sendSuccess(response, result);
+  };
+
+  public analytics = async (request: Request, response: Response): Promise<void> => {
+    const actor = getActor(request);
+    const result = await this.service.analytics(actor);
+    const distribution: Record<string, number> = {};
+    for (const [k, v] of Object.entries(result.ratingBreakdown)) {
+      distribution[k] = v;
+    }
+    const body: AnalyticsResponse = {
+      averageRating: result.averageRating,
+      totalReviews: result.totalReviews,
+      ratingDistribution: distribution,
+    };
+    sendSuccess(response, body);
+  };
+
+  public recent = async (request: Request, response: Response): Promise<void> => {
+    const actor = getActor(request);
+    const items = await this.service.recent(actor);
+    sendSuccess(response, items);
   };
 }
 

@@ -89,6 +89,11 @@ export class SettlementController {
     );
     sendSuccess(response, result, "Settlement marked paid successfully");
   };
+
+  public summary = async (request: Request, response: Response): Promise<void> => {
+    const result = await this.service.summary(getActor(request));
+    sendSuccess(response, result);
+  };
 }
 
 export const settlementController = new SettlementController(settlementService);

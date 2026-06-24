@@ -122,6 +122,37 @@ export class RestaurantRepository {
       select: restaurantSelect,
     });
   }
+
+  public getSettings(restaurantId: string) {
+    return prisma.restaurantSettings.findUnique({ where: { restaurantId },
+      select: { id: true, restaurantId: true, tagline: true, cuisine: true, city: true, state: true, pincode: true, email: true },
+    });
+  }
+
+  public upsertSettings(restaurantId: string, data: { tagline?: string | null; cuisine?: string | null; city?: string | null; state?: string | null; pincode?: string | null; email?: string | null }) {
+    return prisma.restaurantSettings.upsert({
+      where: { restaurantId },
+      update: data,
+      create: { restaurantId, ...data },
+      select: { id: true, restaurantId: true, tagline: true, cuisine: true, city: true, state: true, pincode: true, email: true },
+    });
+  }
+
+  public getBusinessHours(restaurantId: string) {
+    return prisma.businessHours.findMany({ where: { restaurantId }, orderBy: { day: "asc" } });
+  }
+
+  public replaceBusinessHours(restaurantId: string, rows: Array<{ day: string; openTime: string; closeTime: string; isOpen: boolean }>) {
+    return prisma.$transaction(async (tx) => {
+      await tx.businessHours.deleteMany({ where: { restaurantId } });
+      const created = await tx.businessHours.createMany({ data: rows.map((r) => ({ restaurantId, day: r.day, openTime: r.openTime, closeTime: r.closeTime, isOpen: r.isOpen })) });
+      return tx.businessHours.findMany({ where: { restaurantId }, orderBy: { day: "asc" } });
+    });
+  }
+
+  public createMedia(restaurantId: string, type: string, url: string) {
+    return prisma.restaurantMedia.create({ data: { restaurantId, type, url }, select: { id: true, restaurantId: true, type: true, url: true, createdAt: true } });
+  }
 }
 
 export const restaurantRepository = new RestaurantRepository();

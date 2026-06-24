@@ -200,6 +200,11 @@ export class SettlementService {
     return toSettlementResponse(updated);
   }
 
+  public async summary(actor: SettlementActorDTO): Promise<{ availableToSettle: number; inTransit: number; settledThisMonth: number }> {
+    const filters = actor.role === Role.RESTAURANT_OWNER ? { ownerId: actor.id } : {};
+    return this.repository.getSummary(filters);
+  }
+
   private async getExistingSettlement(id: string): Promise<SettlementRecord> {
     const settlement = await this.repository.findById(id);
 

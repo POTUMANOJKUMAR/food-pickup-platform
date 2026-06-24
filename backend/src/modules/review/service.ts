@@ -165,6 +165,31 @@ export class ReviewService {
     };
   }
 
+  public async analytics(actor?: ReviewActorDTO): Promise<{
+    averageRating: number;
+    totalReviews: number;
+    ratingBreakdown: Record<string, number>;
+  }> {
+    const filters = actor?.role === Role.RESTAURANT_OWNER ? { ownerId: actor.id } : {};
+    const summary = await this.repository.getOverallRatingSummary(filters);
+    const distribution: Record<string, number> = {};
+    for (const item of summary.breakdown) {
+      distribution[String(item.rating)] = item.count;
+    }
+
+    return {
+      averageRating: Number(summary.averageRating.toFixed(2)),
+      totalReviews: summary.totalReviews,
+      ratingBreakdown: distribution,
+    };
+  }
+
+  public async recent(actor?: ReviewActorDTO): Promise<ReviewResponseDTO[]> {
+    const filters = actor?.role === Role.RESTAURANT_OWNER ? { ownerId: actor.id } : {};
+    const items = await this.repository.findRecentReviews(10, filters);
+    return items.map(toReviewResponse);
+  }
+
   private async getReviewForMutation(id: string, actor: ReviewActorDTO): Promise<ReviewRecord> {
     const review = await this.repository.findById(id);
 

@@ -102,6 +102,39 @@ export class WalletService {
     };
   }
 
+  public async analytics(
+    actor: WalletActorDTO,
+    query: WalletQueryDTO = {},
+  ): Promise<{
+    availableBalance: number;
+    pendingBalance: number;
+    lifetimeEarnings: number;
+    ordersThisWeek: number;
+    averageOrderValue: number;
+    commissionPaid: number;
+  }> {
+    const restaurantId = actor.role === Role.RESTAURANT_OWNER ? await this.resolveRestaurantId(actor, query.restaurantId) : query.restaurantId;
+    const filters = actor.role === Role.RESTAURANT_OWNER ? { ownerId: actor.id } : { restaurantId };
+    const result = await this.repository.getAnalytics(filters);
+    return {
+      availableBalance: result.availableBalance,
+      pendingBalance: result.pendingBalance,
+      lifetimeEarnings: result.lifetimeEarnings,
+      ordersThisWeek: result.ordersThisWeek,
+      averageOrderValue: result.averageOrderValue,
+      commissionPaid: result.commissionPaid,
+    };
+  }
+
+  public async revenueChart(
+    actor: WalletActorDTO,
+    query: WalletQueryDTO = {},
+  ): Promise<{ labels: string[]; values: number[] }> {
+    const restaurantId = actor.role === Role.RESTAURANT_OWNER ? await this.resolveRestaurantId(actor, query.restaurantId) : query.restaurantId;
+    const filters = actor.role === Role.RESTAURANT_OWNER ? { ownerId: actor.id } : { restaurantId };
+    return this.repository.getRevenueChart(filters, 14);
+  }
+
   public async creditPendingForPaidOrder(orderId: string): Promise<void> {
     const order = await this.repository.findOrderForWallet(orderId);
 

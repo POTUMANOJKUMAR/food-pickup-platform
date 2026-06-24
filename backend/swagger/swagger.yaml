@@ -150,6 +150,24 @@ components:
           example: Success
         data:
           "$ref": "#/components/schemas/Restaurant"
+      example:
+        success: true
+        message: "Restaurant created successfully"
+        data:
+          id: "3d4e8f11-3333-4444-8888-123456789000"
+          ownerId: "11111111-2222-3333-4444-555555555555"
+          name: "Spice Garden"
+          description: "Family-run kitchen serving traditional biryanis and kebabs."
+          address: "12 Market Road, Fort"
+          latitude: 19.076
+          longitude: 72.8777
+          phone: "+919876543210"
+          openingTime: "11:00"
+          closingTime: "23:00"
+          isActive: true
+          isApproved: false
+          createdAt: "2026-06-24T10:00:00.000Z"
+          updatedAt: "2026-06-24T10:00:00.000Z"
     RestaurantListResponse:
       type: object
       properties:
@@ -187,6 +205,31 @@ components:
                 hasPreviousPage:
                   type: boolean
                   example: false
+      example:
+        success: true
+        message: "Success"
+        data:
+          items:
+            - id: "3d4e8f11-3333-4444-8888-123456789000"
+              ownerId: "11111111-2222-3333-4444-555555555555"
+              name: "Spice Garden"
+              address: "12 Market Road, Fort"
+              latitude: 19.076
+              longitude: 72.8777
+              phone: "+919876543210"
+              openingTime: "11:00"
+              closingTime: "23:00"
+              isActive: true
+              isApproved: true
+              createdAt: "2026-06-24T10:00:00.000Z"
+              updatedAt: "2026-06-24T10:00:00.000Z"
+          pagination:
+            page: 1
+            limit: 20
+            totalItems: 1
+            totalPages: 1
+            hasNextPage: false
+            hasPreviousPage: false
     CategoryInput:
       type: object
       required:
@@ -798,6 +841,195 @@ components:
           additionalProperties: true
           example:
             orderId: 3d4e8f11-3333-4444-8888-123456789000
+    RestaurantProfileInput:
+      type: object
+      properties:
+        name:
+          type: string
+        tagline:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        cuisine:
+          type: string
+          nullable: true
+        address:
+          type: string
+        city:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        pincode:
+          type: string
+          nullable: true
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        example:
+          name: "Spice Garden"
+          tagline: "Authentic regional flavours"
+          description: "Family-run kitchen serving traditional biryanis and kebabs."
+          cuisine: "Indian"
+          address: "12 Market Road, Fort"
+          city: "Mumbai"
+          state: "Maharashtra"
+          pincode: "400001"
+          phone: "+919876543210"
+          email: "owner@spicegarden.example"
+    RestaurantProfileResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            restaurant:
+              $ref: '#/components/schemas/Restaurant'
+            settings:
+              type: object
+              properties:
+                tagline: { type: string, nullable: true }
+                cuisine: { type: string, nullable: true }
+                city: { type: string, nullable: true }
+                state: { type: string, nullable: true }
+                pincode: { type: string, nullable: true }
+                email: { type: string, nullable: true }
+    BusinessHoursInput:
+      type: array
+      items:
+        type: object
+        properties:
+          day:
+            type: string
+            example: MONDAY
+          openTime:
+            type: string
+            example: "11:00"
+          closeTime:
+            type: string
+            example: "23:00"
+          isOpen:
+            type: boolean
+        example:
+          - day: MONDAY
+            openTime: "11:00"
+            closeTime: "23:00"
+            isOpen: true
+          - day: TUESDAY
+            openTime: "11:00"
+            closeTime: "23:00"
+            isOpen: true
+          - day: WEDNESDAY
+            openTime: "11:00"
+            closeTime: "23:00"
+            isOpen: true
+    BusinessHoursResponse:
+      type: array
+      items:
+        type: object
+        properties:
+          day: { type: string }
+          openTime: { type: string }
+          closeTime: { type: string }
+          isOpen: { type: boolean }
+    ReviewAnalyticsResponse:
+      type: object
+      properties:
+        averageRating: { type: number }
+        totalReviews: { type: integer }
+        ratingDistribution:
+          type: object
+          additionalProperties:
+            type: integer
+      example:
+        averageRating: 4.5
+        totalReviews: 128
+        ratingDistribution:
+          "1": 2
+          "2": 3
+          "3": 10
+          "4": 30
+          "5": 83
+    WalletAnalyticsResponse:
+      type: object
+      properties:
+        availableBalance: { type: number }
+        pendingBalance: { type: number }
+        lifetimeEarnings: { type: number }
+        ordersThisWeek: { type: integer }
+        averageOrderValue: { type: number }
+        commissionPaid: { type: number }
+      example:
+        availableBalance: 475.0
+        pendingBalance: 125.0
+        lifetimeEarnings: 4750.0
+        ordersThisWeek: 24
+        averageOrderValue: 312.5
+        commissionPaid: 380.0
+    WalletRevenueChartResponse:
+      type: object
+      properties:
+        labels:
+          type: array
+          items: { type: string }
+        values:
+          type: array
+          items: { type: number }
+      example:
+        labels: ["2026-06-18","2026-06-19","2026-06-20","2026-06-21","2026-06-22","2026-06-23","2026-06-24"]
+        values: [120.5, 200.0, 150.0, 180.0, 210.0, 95.0, 250.0]
+    DashboardSummaryResponse:
+      type: object
+      properties:
+        todayOrders: { type: integer }
+        revenue: { type: number }
+        pendingOrders: { type: integer }
+        preparingOrders: { type: integer }
+        readyForPickup: { type: integer }
+        averageRating: { type: number }
+        walletBalance: { type: number }
+        cancelledOrders: { type: integer }
+      example:
+        todayOrders: 18
+        revenue: 1240.5
+        pendingOrders: 3
+        preparingOrders: 5
+        readyForPickup: 2
+        averageRating: 4.6
+        walletBalance: 475.0
+        cancelledOrders: 1
+    DashboardChartsResponse:
+      type: object
+      properties:
+        revenueTrend:
+          type: array
+          items: { type: number }
+        ordersTrend:
+          type: array
+          items: { type: integer }
+        dateLabels:
+          type: array
+          items: { type: string }
+      example:
+        revenueTrend: [120.5, 200.0, 150.0, 180.0, 210.0, 95.0, 250.0]
+        ordersTrend: [4, 6, 3, 5, 7, 2, 8]
+        dateLabels: ["2026-06-18","2026-06-19","2026-06-20","2026-06-21","2026-06-22","2026-06-23","2026-06-24"]
+    SettlementSummaryResponse:
+      type: object
+      properties:
+        availableToSettle: { type: number }
+        inTransit: { type: number }
+        settledThisMonth: { type: number }
         pushToken:
           type: string
           nullable: true
@@ -805,6 +1037,12 @@ components:
         sendPush:
           type: boolean
           default: false
+      example:
+        availableToSettle: 1025.5
+        inTransit: 250.0
+        settledThisMonth: 4000.0
+        pushToken: null
+        sendPush: false
     Notification:
       type: object
       properties:
@@ -821,6 +1059,32 @@ components:
           type: string
           example: Your order FP1234 has been confirmed.
         type:
+        example:
+          success: true
+          message: "Success"
+          data:
+            restaurant:
+              id: "3d4e8f11-3333-4444-8888-123456789000"
+              ownerId: "11111111-2222-3333-4444-555555555555"
+              name: "Spice Garden"
+              description: "Family-run kitchen serving traditional biryanis and kebabs."
+              address: "12 Market Road, Fort"
+              latitude: 19.076
+              longitude: 72.8777
+              phone: "+919876543210"
+              openingTime: "11:00"
+              closingTime: "23:00"
+              isActive: true
+              isApproved: true
+              createdAt: "2026-06-24T10:00:00.000Z"
+              updatedAt: "2026-06-24T10:00:00.000Z"
+            settings:
+              tagline: "Authentic regional flavours"
+              cuisine: "Indian"
+              city: "Mumbai"
+              state: "Maharashtra"
+              pincode: "400001"
+              email: "owner@spicegarden.example"
           "$ref": "#/components/schemas/NotificationType"
         isRead:
           type: boolean
@@ -1027,6 +1291,26 @@ components:
           example: Success
         data:
           "$ref": "#/components/schemas/Wallet"
+    UploadResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Upload successful
+        data:
+          type: object
+          properties:
+            url:
+              type: string
+              format: uri
+      example:
+        success: true
+        message: "Upload successful"
+        data:
+          url: "http://localhost:3000/uploads/sample-logo.png"
     WalletTransaction:
       type: object
       properties:

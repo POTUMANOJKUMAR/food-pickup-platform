@@ -251,6 +251,25 @@ export class SettlementRepository {
       });
     });
   }
+
+  public async getSummary(filters: { ownerId?: string } = {}) {
+    const walletWhere: Prisma.RestaurantWalletWhereInput = {
+      ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }),
+    };
+
+    const walletAgg = await prisma.restaurantWallet.aggregate({ where: walletWhere, _sum: { availableBalance: true, pendingBalance: true } });
+
+    const now = new Date();
+    const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const settledThisMonthAgg = await prisma.settlement.aggregate({ where: { status: "PAID", processedAt: { gte: firstOfMonth }, ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }) }, _sum: { amount: true } });
+
+    return {
+      availableToSettle: Number(walletAgg._sum.availableBalance ?? 0),
+      inTransit: Number(walletAgg._sum.pendingBalance ?? 0),
+      settledThisMonth: Number(settledThisMonthAgg._sum.amount ?? 0),
+    };
+  }
 }
 
 export const settlementRepository = new SettlementRepository();

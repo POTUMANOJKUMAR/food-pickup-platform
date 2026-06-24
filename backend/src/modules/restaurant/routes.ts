@@ -5,6 +5,13 @@ import { authorize } from "../../middlewares/authorize.middleware.js";
 import { validateRequest } from "../../middlewares/validate.middleware.js";
 import { asyncHandler } from "../../utils/async-handler.js";
 import { restaurantController } from "./controller.js";
+import multer from "multer";
+import path from "path";
+import {
+  restaurantProfileQuerySchema,
+  updateRestaurantProfileSchema,
+  businessHoursSchema,
+} from "./validator.js";
 import {
   createRestaurantSchema,
   listRestaurantsSchema,
@@ -13,6 +20,185 @@ import {
 } from "./validator.js";
 
 export const restaurantRouter = Router();
+
+const upload = multer({ dest: path.join(process.cwd(), "uploads") });
+
+restaurantRouter.get(
+  "/profile",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  validateRequest(restaurantProfileQuerySchema),
+  asyncHandler(restaurantController.getProfile),
+);
+
+/**
+ * @openapi
+ * /restaurants/profile:
+ *   get:
+ *     tags: [Restaurants]
+ *     summary: Get restaurant profile and settings
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: restaurantId, schema: { type: string, format: uuid }, description: Required for admins }
+ *     responses:
+ *       200:
+ *         description: Restaurant profile with settings
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/RestaurantProfileResponse' }
+ */
+
+restaurantRouter.put(
+  "/profile",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  validateRequest(updateRestaurantProfileSchema),
+  asyncHandler(restaurantController.updateProfile),
+);
+
+/**
+ * @openapi
+ * /restaurants/profile:
+ *   put:
+ *     tags: [Restaurants]
+ *     summary: Update restaurant profile and settings
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/RestaurantProfileInput' }
+ *     responses:
+ *       200:
+ *         description: Profile updated
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/RestaurantProfileResponse' }
+ */
+
+restaurantRouter.get(
+  "/business-hours",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  asyncHandler(restaurantController.getBusinessHours),
+);
+
+/**
+ * @openapi
+ * /restaurants/business-hours:
+ *   get:
+ *     tags: [Restaurants]
+ *     summary: Get business hours
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: restaurantId, schema: { type: string, format: uuid }, description: Required for admins }
+ *     responses:
+ *       200:
+ *         description: Business hours array
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/BusinessHoursResponse' }
+ */
+
+restaurantRouter.put(
+  "/business-hours",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  validateRequest(businessHoursSchema),
+  asyncHandler(restaurantController.updateBusinessHours),
+);
+
+/**
+ * @openapi
+ * /restaurants/business-hours:
+ *   put:
+ *     tags: [Restaurants]
+ *     summary: Replace business hours
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/BusinessHoursInput' }
+ *     responses:
+ *       200:
+ *         description: Business hours updated
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/BusinessHoursResponse' }
+ */
+
+restaurantRouter.post(
+  "/logo",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  upload.single("file"),
+  asyncHandler(restaurantController.uploadLogo),
+);
+
+/**
+ * @openapi
+ * /restaurants/logo:
+ *   post:
+ *     tags: [Restaurants]
+ *     summary: Upload restaurant logo
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Logo uploaded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 logoUrl: { type: string }
+ */
+
+restaurantRouter.post(
+  "/banner",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  upload.single("file"),
+  asyncHandler(restaurantController.uploadBanner),
+);
+
+/**
+ * @openapi
+ * /restaurants/banner:
+ *   post:
+ *     tags: [Restaurants]
+ *     summary: Upload restaurant banner
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Banner uploaded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 bannerUrl: { type: string }
+ */
 
 /**
  * @openapi
@@ -56,6 +242,33 @@ restaurantRouter.post(
   authorize(Role.RESTAURANT_OWNER),
   validateRequest(createRestaurantSchema),
   asyncHandler(restaurantController.create),
+);
+
+/**
+ * @openapi
+ * /restaurants/business-hours:
+ *   post:
+ *     tags: [Restaurants]
+ *     summary: Create business hours
+ *     security: [{ bearerAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { $ref: '#/components/schemas/BusinessHoursInput' }
+ *     responses:
+ *       201:
+ *         description: Business hours created
+ *         content:
+ *           application/json:
+ *             schema: { $ref: '#/components/schemas/BusinessHoursResponse' }
+ */
+restaurantRouter.post(
+  "/business-hours",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  validateRequest(businessHoursSchema),
+  asyncHandler(restaurantController.createBusinessHours),
 );
 restaurantRouter.get(
   "/",

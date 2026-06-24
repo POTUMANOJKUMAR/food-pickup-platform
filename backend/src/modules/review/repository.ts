@@ -153,6 +153,38 @@ export class ReviewRepository {
       }),
     };
   }
+
+  public async getOverallRatingSummary(filters: { ownerId?: string } = {}): Promise<{
+    averageRating: number;
+    totalReviews: number;
+    breakdown: Array<{ rating: number; count: number }>;
+  }> {
+    const where: Prisma.ReviewWhereInput = {
+      ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }),
+    };
+
+    const [aggregate, groups] = await prisma.$transaction([
+      prisma.review.aggregate({ where, _avg: { rating: true }, _count: { id: true } }),
+      prisma.review.groupBy({ by: ["rating"], where, orderBy: { rating: "asc" }, _count: { _all: true } }),
+    ]);
+
+    return {
+      averageRating: aggregate._avg.rating ?? 0,
+      totalReviews: aggregate._count.id,
+      breakdown: groups.map((group) => {
+        const count = typeof group._count === "object" ? group._count._all ?? 0 : 0;
+        return { rating: group.rating, count };
+      }),
+    };
+  }
+
+  public async findRecentReviews(limit = 10, filters: { ownerId?: string } = {}): Promise<ReviewRecord[]> {
+    const where: Prisma.ReviewWhereInput = {
+      ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }),
+    };
+
+    return prisma.review.findMany({ where, select: reviewSelect, orderBy: { createdAt: "desc" }, take: limit });
+  }
 }
 
 export const reviewRepository = new ReviewRepository();

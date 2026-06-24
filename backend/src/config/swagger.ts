@@ -51,6 +51,18 @@ const options: swaggerJsdoc.OAS3Options = {
             phone: { type: "string", example: "+919876543210" },
             openingTime: { type: "string", pattern: "^([01]\\d|2[0-3]):[0-5]\\d$", example: "09:00" },
             closingTime: { type: "string", pattern: "^([01]\\d|2[0-3]):[0-5]\\d$", example: "22:00" },
+            settings: {
+              type: "object",
+              nullable: true,
+              properties: {
+                tagline: { type: "string", nullable: true },
+                cuisine: { type: "string", nullable: true },
+                city: { type: "string", nullable: true },
+                state: { type: "string", nullable: true },
+                pincode: { type: "string", nullable: true },
+                email: { type: "string", format: "email", nullable: true },
+              },
+            },
           },
         },
         Restaurant: {
@@ -102,6 +114,124 @@ const options: swaggerJsdoc.OAS3Options = {
               },
             },
           },
+        },
+        RestaurantProfileInput: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            tagline: { type: "string", nullable: true },
+            description: { type: "string", nullable: true },
+            cuisine: { type: "string", nullable: true },
+            address: { type: "string" },
+            city: { type: "string", nullable: true },
+            state: { type: "string", nullable: true },
+            pincode: { type: "string", nullable: true },
+            phone: { type: "string" },
+            email: { type: "string", format: "email" },
+          },
+          example: {
+            name: "Spice Garden",
+            tagline: "Authentic regional flavours",
+            description: "Family-run kitchen serving traditional biryanis and kebabs.",
+            cuisine: "Indian",
+            address: "12 Market Road, Fort",
+            city: "Mumbai",
+            state: "Maharashtra",
+            pincode: "400001",
+            phone: "+919876543210",
+            email: "owner@spicegarden.example",
+          },
+        },
+        RestaurantProfileResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string" },
+            data: {
+              type: "object",
+              properties: {
+                restaurant: { $ref: "#/components/schemas/Restaurant" },
+                settings: {
+                  type: "object",
+                  properties: {
+                    tagline: { type: "string", nullable: true },
+                    cuisine: { type: "string", nullable: true },
+                    city: { type: "string", nullable: true },
+                    state: { type: "string", nullable: true },
+                    pincode: { type: "string", nullable: true },
+                    email: { type: "string", nullable: true },
+                  },
+                },
+              },
+            },
+          },
+          example: {
+            success: true,
+            message: "Success",
+            data: {
+              restaurant: {
+                id: "3d4e8f11-3333-4444-8888-123456789000",
+                ownerId: "11111111-2222-3333-4444-555555555555",
+                name: "Spice Garden",
+                description: "Family-run kitchen serving traditional biryanis and kebabs.",
+                address: "12 Market Road, Fort",
+                latitude: 19.076,
+                longitude: 72.8777,
+                phone: "+919876543210",
+                openingTime: "11:00",
+                closingTime: "23:00",
+                isActive: true,
+                isApproved: true,
+                createdAt: "2026-06-24T10:00:00.000Z",
+                updatedAt: "2026-06-24T10:00:00.000Z",
+              },
+              settings: {
+                tagline: "Authentic regional flavours",
+                cuisine: "Indian",
+                city: "Mumbai",
+                state: "Maharashtra",
+                pincode: "400001",
+                email: "owner@spicegarden.example",
+              },
+            },
+          },
+        },
+        BusinessHoursInput: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              day: { type: "string", example: "MONDAY" },
+              openTime: { type: "string", example: "11:00" },
+              closeTime: { type: "string", example: "23:00" },
+              isOpen: { type: "boolean" },
+            },
+          },
+          example: [
+            { day: "MONDAY", openTime: "11:00", closeTime: "23:00", isOpen: true },
+            { day: "TUESDAY", openTime: "11:00", closeTime: "23:00", isOpen: true },
+          ],
+        },
+        BusinessHoursResponse: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              day: { type: "string" },
+              openTime: { type: "string" },
+              closeTime: { type: "string" },
+              isOpen: { type: "boolean" },
+            },
+          },
+        },
+        UploadResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Upload successful" },
+            data: { type: "object", properties: { url: { type: "string", format: "uri" } } },
+          },
+          example: { success: true, message: "Upload successful", data: { url: "http://localhost:3000/uploads/sample-logo.png" } },
         },
         CategoryInput: {
           type: "object",

@@ -69,3 +69,59 @@ walletRouter.get(
   validateRequest(walletQuerySchema),
   asyncHandler(walletController.summary),
 );
+walletRouter.get(
+  "/analytics",
+  validateRequest(walletQuerySchema),
+  asyncHandler(walletController.analytics),
+);
+walletRouter.get(
+  "/revenue-chart",
+  validateRequest(walletQuerySchema),
+  asyncHandler(walletController.revenueChart),
+);
+
+/**
+ * @openapi
+ * /wallet/analytics:
+ *   get:
+ *     tags: [Wallet]
+ *     summary: Get wallet analytics
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: restaurantId, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Wallet analytics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 availableBalance: { type: number }
+ *                 pendingBalance: { type: number }
+ *                 lifetimeEarnings: { type: number }
+ *                 ordersThisWeek: { type: integer }
+ *                 averageOrderValue: { type: number }
+ *                 commissionPaid: { type: number }
+ */
+
+/**
+ * @openapi
+ * /wallet/revenue-chart:
+ *   get:
+ *     tags: [Wallet]
+ *     summary: Get wallet revenue chart
+ *     security: [{ bearerAuth: [] }]
+ *     parameters:
+ *       - { in: query, name: restaurantId, schema: { type: string, format: uuid } }
+ *     responses:
+ *       200:
+ *         description: Revenue chart
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 labels: { type: array, items: { type: string } }
+ *                 values: { type: array, items: { type: number } }
+ */

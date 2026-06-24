@@ -105,6 +105,9 @@ model Restaurant {
   reviews      Review[]
   wallet       RestaurantWallet?
   settlements  Settlement[]
+  businessHours BusinessHours[]
+  settings     RestaurantSettings?
+  media        RestaurantMedia[]
 
   @@index([ownerId])
   @@index([name])
@@ -363,4 +366,49 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("refresh_tokens")
+}
+
+model BusinessHours {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  day          String   @db.VarChar(20)
+  openTime     String   @map("open_time") @db.VarChar(10)
+  closeTime    String   @map("close_time") @db.VarChar(10)
+  isOpen       Boolean  @default(true) @map("is_open")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@map("business_hours")
+}
+
+model RestaurantSettings {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @unique @map("restaurant_id") @db.Uuid
+  tagline      String?  @db.VarChar(255)
+  cuisine      String?  @db.VarChar(255)
+  city         String?  @db.VarChar(100)
+  state        String?  @db.VarChar(100)
+  pincode      String?  @db.VarChar(20)
+  email        String?  @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@map("restaurant_settings")
+}
+
+model RestaurantMedia {
+  id           String   @id @default(uuid()) @db.Uuid
+  restaurantId String   @map("restaurant_id") @db.Uuid
+  type         String   @db.VarChar(50)
+  url          String   @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+  @@map("restaurant_media")
 }

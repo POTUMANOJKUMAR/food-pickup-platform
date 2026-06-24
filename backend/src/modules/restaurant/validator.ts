@@ -19,7 +19,19 @@ const restaurantFields = {
 } as const;
 
 export const createRestaurantSchema = z.object({
-  body: z.object(restaurantFields).strict(),
+  body: z.object({
+    ...restaurantFields,
+    settings: z
+      .object({
+        tagline: z.string().trim().max(255).optional(),
+        cuisine: z.string().trim().max(255).optional(),
+        city: z.string().trim().max(100).optional(),
+        state: z.string().trim().max(100).optional(),
+        pincode: z.string().trim().max(20).optional(),
+        email: z.string().email().optional(),
+      })
+      .optional(),
+  }).strict(),
   params: emptyObjectSchema,
   query: emptyObjectSchema,
 });
@@ -58,4 +70,64 @@ export const updateRestaurantSchema = z.object({
     .refine((body) => Object.keys(body).length > 0, "At least one field is required"),
   params: idParamsSchema,
   query: emptyObjectSchema,
+});
+
+export const restaurantProfileQuerySchema = z.object({
+  body: z.unknown(),
+  params: emptyObjectSchema,
+  query: z.object({ restaurantId: z.string().uuid().optional() }).strict(),
+});
+
+export const updateRestaurantProfileSchema = z.object({
+  body: z
+    .object({
+      name: restaurantFields.name.optional(),
+      tagline: z.string().trim().max(255).optional(),
+      description: restaurantFields.description,
+      cuisine: z.string().trim().max(255).optional(),
+      address: restaurantFields.address.optional(),
+      city: z.string().trim().max(100).optional(),
+      state: z.string().trim().max(100).optional(),
+      pincode: z.string().trim().max(20).optional(),
+      phone: restaurantFields.phone.optional(),
+      email: z.string().email().optional(),
+    })
+    .strict()
+    .refine((b) => Object.keys(b).length > 0, "At least one field is required"),
+  params: emptyObjectSchema,
+  query: emptyObjectSchema,
+});
+const validDays = [
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+  "SUNDAY",
+] as const;
+export const businessHoursSchema = z.object({
+   body: z
+    .array(
+      z.object({
+        day: z.enum(validDays),
+        openTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        closeTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+        isOpen: z.boolean(),
+      }),
+    )
+    .min(1, "At least one business day is required")
+    .max(7, "Maximum 7 business days allowed")
+    .refine(
+      (arr) => {
+        const days = arr.map((item) => item.day);
+        return new Set(days).size === days.length;
+      },
+      {
+        message: "Duplicate days are not allowed",
+      },
+    ),
+  params: z.object({}),
+  query: z.object({}),
+
 });

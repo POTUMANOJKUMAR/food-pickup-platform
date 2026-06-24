@@ -61,6 +61,27 @@ settlementRouter.get(
   validateRequest(listSettlementsSchema),
   asyncHandler(settlementController.list),
 );
+settlementRouter.get("/summary", asyncHandler(settlementController.summary));
+
+/**
+ * @openapi
+ * /settlements/summary:
+ *   get:
+ *     tags: [Settlements]
+ *     summary: Get settlement summary
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Settlement summary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 availableToSettle: { type: number }
+ *                 inTransit: { type: number }
+ *                 settledThisMonth: { type: number }
+ */
 
 /**
  * @openapi

@@ -9,6 +9,14 @@ export interface CreateRestaurantRequestDTO {
   phone: string;
   openingTime: string;
   closingTime: string;
+  settings?: {
+    tagline?: string | null;
+    cuisine?: string | null;
+    city?: string | null;
+    state?: string | null;
+    pincode?: string | null;
+    email?: string | null;
+  };
 }
 
 export interface UpdateRestaurantRequestDTO {
@@ -71,4 +79,32 @@ export interface DeleteRestaurantResponseDTO {
 export interface RestaurantActorDTO {
   id: string;
   role: Role;
+}
+
+export interface RestaurantProfileDTO {
+  name?: string;
+  tagline?: string | null;
+  description?: string | null;
+  cuisine?: string | null;
+  address?: string;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  phone?: string;
+  email?: string | null;
+}
+
+export interface BusinessHourDTO {
+  day: string;
+  openTime: string;
+  closeTime: string;
+  isOpen: boolean;
+}
+
+export interface MediaResponseDTO {
+  id: string;
+  restaurantId: string;
+  type: string;
+  url: string;
+  createdAt: string;
 }

@@ -273,6 +273,77 @@ export class WalletRepository {
       transactionCount,
     };
   }
+
+  public async getAnalytics(filters: { restaurantId?: string; ownerId?: string } = {}) {
+    const whereWallet: Prisma.RestaurantWalletWhereInput = {
+      ...(filters.restaurantId === undefined ? {} : { restaurantId: filters.restaurantId }),
+      ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }),
+    };
+
+    const wallets = await prisma.restaurantWallet.findMany({ where: whereWallet, select: { id: true, availableBalance: true, pendingBalance: true, lifetimeEarnings: true } });
+
+    const availableBalance = wallets.reduce((s, w) => s + Number(w.availableBalance.toString()), 0);
+    const pendingBalance = wallets.reduce((s, w) => s + Number(w.pendingBalance.toString()), 0);
+    const lifetimeEarnings = wallets.reduce((s, w) => s + Number(w.lifetimeEarnings.toString()), 0);
+
+    // orders this week and average order value
+    const now = new Date();
+    const weekAgo = new Date(now);
+    weekAgo.setDate(now.getDate() - 7);
+
+    const orderWhere: Prisma.OrderWhereInput = {
+      createdAt: { gte: weekAgo },
+      ...(filters.restaurantId === undefined ? {} : { restaurantId: filters.restaurantId }),
+      ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }),
+      status: { not: "CANCELLED" },
+    } as any;
+
+    const [ordersThisWeek, avgResult] = await prisma.$transaction([
+      prisma.order.count({ where: orderWhere }),
+      prisma.order.aggregate({ where: { ...(filters.restaurantId === undefined ? {} : { restaurantId: filters.restaurantId }), ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }), status: { not: "CANCELLED" } }, _avg: { totalAmount: true } }),
+    ]);
+
+    const averageOrderValue = Number(avgResult._avg.totalAmount ?? 0);
+
+    const commissionAgg = await prisma.walletTransaction.aggregate({ where: { transactionType: "COMMISSION", ...(filters.restaurantId === undefined ? {} : { wallet: { restaurantId: filters.restaurantId } }), ...(filters.ownerId === undefined ? {} : { wallet: { restaurant: { ownerId: filters.ownerId } } }) }, _sum: { amount: true } });
+
+    return {
+      availableBalance,
+      pendingBalance,
+      lifetimeEarnings,
+      ordersThisWeek,
+      averageOrderValue,
+      commissionPaid: Number(commissionAgg._sum.amount ?? 0),
+    };
+  }
+
+  public async getRevenueChart(filters: { restaurantId?: string; ownerId?: string } = {}, days = 7) {
+    const now = new Date();
+    const start = new Date(now);
+    start.setDate(now.getDate() - (days - 1));
+
+    const where: Prisma.OrderWhereInput = {
+      createdAt: { gte: start },
+      ...(filters.restaurantId === undefined ? {} : { restaurantId: filters.restaurantId }),
+      ...(filters.ownerId === undefined ? {} : { restaurant: { ownerId: filters.ownerId } }),
+      status: { not: "CANCELLED" },
+    } as any;
+
+    const orders = await prisma.order.findMany({ where, select: { createdAt: true, totalAmount: true } });
+
+    const labels: string[] = [];
+    const values: number[] = [];
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      const iso = d.toISOString().slice(0, 10);
+      labels.push(iso);
+      const daySum = orders.reduce((s, o) => (o.createdAt.toISOString().slice(0, 10) === iso ? s + Number(o.totalAmount.toString()) : s), 0);
+      values.push(daySum);
+    }
+
+    return { labels, values };
+  }
 }
 
 export const walletRepository = new WalletRepository();

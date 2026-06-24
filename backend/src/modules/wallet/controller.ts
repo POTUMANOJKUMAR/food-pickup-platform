@@ -58,6 +58,16 @@ export class WalletController {
     const result = await this.service.summary(getActor(request), toWalletQuery(request));
     sendSuccess(response, result);
   };
+
+  public analytics = async (request: Request, response: Response): Promise<void> => {
+    const result = await this.service.analytics(getActor(request), toWalletQuery(request));
+    sendSuccess(response, result);
+  };
+
+  public revenueChart = async (request: Request, response: Response): Promise<void> => {
+    const result = await this.service.revenueChart(getActor(request), toWalletQuery(request));
+    sendSuccess(response, result);
+  };
 }
 
 export const walletController = new WalletController(walletService);

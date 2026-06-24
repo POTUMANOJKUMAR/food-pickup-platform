@@ -66,6 +66,55 @@ reviewRouter.get(
   validateRequest(listReviewsSchema),
   asyncHandler(reviewController.list),
 );
+reviewRouter.get(
+  "/analytics",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  asyncHandler(reviewController.analytics),
+);
+reviewRouter.get(
+  "/recent",
+  authenticate,
+  authorize(Role.RESTAURANT_OWNER, Role.ADMIN),
+  asyncHandler(reviewController.recent),
+);
+
+/**
+ * @openapi
+ * /reviews/analytics:
+ *   get:
+ *     tags: [Reviews]
+ *     summary: Get reviews analytics (average, total, distribution)
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Reviews analytics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 averageRating: { type: number }
+ *                 totalReviews: { type: integer }
+ *                 ratingDistribution: { type: object }
+ */
+
+/**
+ * @openapi
+ * /reviews/recent:
+ *   get:
+ *     tags: [Reviews]
+ *     summary: Get recent reviews
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200:
+ *         description: Recent reviews
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/ReviewResponse' }
+ */
 
 /**
  * @openapi

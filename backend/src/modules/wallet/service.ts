@@ -114,7 +114,12 @@ export class WalletService {
     commissionPaid: number;
   }> {
     const restaurantId = actor.role === Role.RESTAURANT_OWNER ? await this.resolveRestaurantId(actor, query.restaurantId) : query.restaurantId;
-    const filters = actor.role === Role.RESTAURANT_OWNER ? { ownerId: actor.id } : { restaurantId };
+    const filters: { restaurantId?: string; ownerId?: string } =
+      actor.role === Role.RESTAURANT_OWNER
+        ? { ownerId: actor.id }
+        : restaurantId === undefined
+        ? {}
+        : { restaurantId };
     const result = await this.repository.getAnalytics(filters);
     return {
       availableBalance: result.availableBalance,
@@ -131,7 +136,12 @@ export class WalletService {
     query: WalletQueryDTO = {},
   ): Promise<{ labels: string[]; values: number[] }> {
     const restaurantId = actor.role === Role.RESTAURANT_OWNER ? await this.resolveRestaurantId(actor, query.restaurantId) : query.restaurantId;
-    const filters = actor.role === Role.RESTAURANT_OWNER ? { ownerId: actor.id } : { restaurantId };
+    const filters: { restaurantId?: string; ownerId?: string } =
+      actor.role === Role.RESTAURANT_OWNER
+        ? { ownerId: actor.id }
+        : restaurantId === undefined
+        ? {}
+        : { restaurantId };
     return this.repository.getRevenueChart(filters, 14);
   }
 

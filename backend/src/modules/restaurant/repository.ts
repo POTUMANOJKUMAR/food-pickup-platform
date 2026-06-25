@@ -144,8 +144,8 @@ export class RestaurantRepository {
 
   public replaceBusinessHours(restaurantId: string, rows: Array<{ day: string; openTime: string; closeTime: string; isOpen: boolean }>) {
     return prisma.$transaction(async (tx) => {
-      await tx.businessHours.deleteMany({ where: { restaurantId } });
-      const created = await tx.businessHours.createMany({ data: rows.map((r) => ({ restaurantId, day: r.day, openTime: r.openTime, closeTime: r.closeTime, isOpen: r.isOpen })) });
+        await tx.businessHours.deleteMany({ where: { restaurantId } });
+      await tx.businessHours.createMany({ data: rows.map((r) => ({ restaurantId, day: r.day, openTime: r.openTime, closeTime: r.closeTime, isOpen: r.isOpen })) });
       return tx.businessHours.findMany({ where: { restaurantId }, orderBy: { day: "asc" } });
     });
   }

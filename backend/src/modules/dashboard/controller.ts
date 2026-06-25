@@ -1,10 +1,9 @@
 import type { Request, Response } from "express";
+import type { AuthenticatedUser } from "../../types/auth.js";
 import { sendSuccess } from "../../utils/api-response.js";
 import { dashboardService } from "./service.js";
 
-const getActor = (request: Request) => {
-  return request.user as { id: string; role: string } | undefined;
-};
+const getActor = (request: Request): AuthenticatedUser | undefined => request.user;
 
 export class DashboardController {
   public async summary(request: Request, response: Response): Promise<void> {

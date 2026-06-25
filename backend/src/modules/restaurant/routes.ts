@@ -7,6 +7,9 @@ import { asyncHandler } from "../../utils/async-handler.js";
 import { restaurantController } from "./controller.js";
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+
+
 import {
   restaurantProfileQuerySchema,
   updateRestaurantProfileSchema,
@@ -21,8 +24,15 @@ import {
 
 export const restaurantRouter = Router();
 
-const upload = multer({ dest: path.join(process.cwd(), "uploads") });
+const uploadDir = path.join(process.cwd(), "uploads");
 
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({
+  dest: uploadDir,
+});
 restaurantRouter.get(
   "/profile",
   authenticate,

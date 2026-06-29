@@ -18,6 +18,11 @@ const toOrderResponse = (order: OrderRecord): OrderResponseDTO => ({
   id: order.id,
   orderNumber: order.orderNumber,
   userId: order.userId,
+  customer: {
+    id: order.user.id,
+    name: order.user.name,
+    email: order.user.email,
+  },
   restaurantId: order.restaurantId,
   status: order.status,
   paymentStatus: order.paymentStatus,

@@ -21,6 +21,13 @@ const orderSelect = {
       ownerId: true,
     },
   },
+   user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
   items: {
     select: {
       id: true,

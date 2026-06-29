@@ -29,6 +29,11 @@ export interface OrderResponseDTO {
   id: string;
   orderNumber: string;
   userId: string;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+  };
   restaurantId: string;
   status: OrderStatus;
   paymentStatus: PaymentStatus;
